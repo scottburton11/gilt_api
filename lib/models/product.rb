@@ -1,4 +1,6 @@
 require 'net/http'
+require 'pathname'
+require 'uri'
 
 class Product < Sequel::Model
 
@@ -61,5 +63,9 @@ class Product < Sequel::Model
 
   def remote_image_url
     URI.parse(image_url)
+  end
+
+  def to_json(*args)
+    values.merge(image_url: image_file_path, price: price, designer_name: designer.name).to_json(*args)
   end
 end

@@ -7,4 +7,5 @@ gem 'sequel'
 gem 'sinatra'
 gem 'json'
 gem 'rabl'
+gem 'yajl-ruby', :require => "yajl"
 gem 'active_support'

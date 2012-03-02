@@ -1,5 +1,5 @@
 collection @products
-attributes :id, :name, :description, :url, :sku
+attributes :id, :name, :description, :url, :sku, :category
 
 code :image_url do |p|
   p.image_file_path

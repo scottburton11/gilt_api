@@ -2,7 +2,7 @@ require 'gilt'
 
 AtomFeeds = [
   "https://api.gilt.com/v1/sales/men/active.atom",
-  "https://api.gilt.com/v1/sales/women/active.atom",
+#  "https://api.gilt.com/v1/sales/women/active.atom",
 ]
 
 AtomFeeds.each do |feed|

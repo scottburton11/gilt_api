@@ -26,7 +26,11 @@ class Importer
     end
 
     def perform
-      products.each {|product| create(ProductImport.new(product).attributes)}
+      begin
+        products.each {|product| create(ProductImport.new(product).attributes)}
+      rescue => e
+        puts "Error: #{e}"
+      end
     end
 
     def products
@@ -54,8 +58,12 @@ class Importer
       @parsed_url ||= URI.parse(url)
     end
 
+    def response_body
+      @reponse_body ||= open(url)
+    end
+
     def document
-      @document ||= Nokogiri::HTML(open(url))
+      @document ||= Nokogiri::HTML(response_body)
     end
   end
 
