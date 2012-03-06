@@ -1,2 +1,3 @@
 .DS_Store
 db/*.sqlite3
+lib/public/images/share
