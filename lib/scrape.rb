@@ -5,10 +5,19 @@ AtomFeeds = [
 #  "https://api.gilt.com/v1/sales/women/active.atom",
 ]
 
-AtomFeeds.each do |feed|
-  feed = Nokogiri::HTML(open(feed))
+class Scraper < Struct.new(:feeds)
 
-  urls = feed.xpath("//entry/link").map{|link| link.attributes["href"].value }.uniq
+  def self.perform
+    new(AtomFeeds).perform
+  end
 
-  Importer.new(*urls).perform
+  def perform
+    feeds.each do |feed|
+      feed = Nokogiri::HTML(open(feed))
+
+      urls = feed.xpath("//entry/link").map{|link| link.attributes["href"].value }.uniq
+
+      Importer.new(*urls).perform
+    end
+  end
 end
