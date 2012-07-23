@@ -9,3 +9,6 @@ gem 'json'
 gem 'rabl'
 gem 'yajl-ruby', :require => "yajl"
 gem 'active_support'
+gem 'i18n'
+gem 'builder'
+gem 'rake'

@@ -21,12 +21,16 @@ namespace :db do
   end
 
   task :seed do
-    require 'lib/scrape'
-    Scraper.perform
+    Rake::Task['products:import'].invoke
   end
 end
 
 namespace :products do
+  task :import => :environment do
+    require 'lib/scrape'
+    Scraper.perform
+  end
+
   task :download_images => :environment do
     Product.all.each {|product| product.save_image_file }
   end
