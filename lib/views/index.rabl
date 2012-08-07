@@ -1,14 +1,10 @@
 collection @products
-attributes :id, :name, :description, :url, :sku, :category
+attributes :id, :name, :description, :url, :sku, :store, :images, :price_cents
 
-code :image_url do |p|
-  p.image_file_path
-end
-
-code :price do |p|
+node :price do |p|
   p.price
 end
 
-code :designer_name do |p|
+node :designer_name do |p|
   p.designer.name
 end

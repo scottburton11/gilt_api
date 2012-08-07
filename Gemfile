@@ -12,3 +12,5 @@ gem 'active_support'
 gem 'i18n'
 gem 'builder'
 gem 'rake'
+
+gem 'pry'

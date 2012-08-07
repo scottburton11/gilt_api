@@ -5,7 +5,7 @@ Sequel.migration do
       foreign_key :designer_id
       String :name
       String :description, :text => true
-      String :image_url
+      String :image_path
       String :url
       Integer :sku
       Integer :price_cents

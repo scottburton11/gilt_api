@@ -1,118 +1,116 @@
-require 'nokogiri'
-require 'open-uri'
-require 'cgi'
+require 'fileutils'
+require 'pry'
 
 module Gilt
-  module Website
-    ProductSelector = "article.look.available"
-  end
-end
+  class Importer
 
-class Importer
-  attr_reader :urls
-  def initialize(*urls)
-    @urls = urls
-  end
+    module ImageHelper 
+      def image_path(uri)
+        uri = URI.parse(uri) unless uri.respond_to?(:path)
+        Pathname.new(uri.path.to_s.sub(/^\//, ""))
+      end
+    end
 
-  def perform
-    urls.each {|url| ProductsImportJob.new(url).perform }
-  end
-
-  class ProductsImportJob
-
-    attr_reader :url
-    def initialize(url)
-      @url = url
+    def self.import
+      new.perform
     end
 
     def perform
-      begin
-        products.each {|product| create(ProductImport.new(product).attributes)}
-      rescue => e
-        puts "Error: #{e}"
+      sales.each do |sale|
+        sale.products.each do |url|
+
+          begin
+            product = ProductImporter.import(url, sale)  
+          rescue => e
+            binding.pry
+          end
+          
+          image_importer = ImageImporter.import(product.response)
+        end
       end
     end
 
-    def products
-      document.css(Gilt::Website::ProductSelector)
+    def sales
+      @sales ||= Gilt::Sale.all
     end
 
-    def categories
-      query["utm_campaign"][0].split(",")
-    end
+    class ProductImporter
+      include Gilt::Importer::ImageHelper
 
-    private
+      def self.import(url, sale)
+        importer = new(url, sale)
+        importer.perform
+        importer
+      end
 
-    def create(attributes)
-      begin
-        Product.create attributes.merge(:category => categories.first)
-      rescue Sequel::DatabaseError
+      attr_reader :url, :sale
+      attr_accessor :product
+      def initialize(url, sale = nil)
+        @url, @sale = url, sale
+      end
+
+      def response
+        @response ||= Gilt::Product.find(url)
+      end
+
+      def attributes
+        {
+         :name => response.name,
+         :description => response.content['description'],
+         :url => response.sale_url,
+         :designer_name => response.brand,
+         :store => sale.store,
+         :sku => response.skus[0]['id'],
+         :price_cents => response.skus[0]['sale_price'].to_i * 100,
+         :url => response.product,
+         :image_path => image_path(response.image_urls["91x121"][0]["url"])
+        }
+      end
+
+      def perform
+        self.product = ::Product.create attributes
+        categorize
+        product
+      end
+
+      def categorize
+        response.categories.uniq.each do |name| 
+          product.add_category Category.find_or_create(:name => name)
+        end
       end
     end
 
-    def query
-      CGI.parse parsed_url.query
+    class ImageImporter
+      include Gilt::Importer::ImageHelper
+
+      def self.import(product)
+        importer = new(product)
+        importer.perform
+        importer
+      end
+
+      attr_reader :product
+      def initialize(product)
+        @product = product  
+      end
+
+      def perform
+        image_urls.each do |url|
+          uri = URI.parse(url)
+          full_path = Gilt.root + "lib" + "public" + image_path(url)
+          FileUtils.mkdir_p full_path.dirname
+          begin
+            File.open(full_path, "w+") do |file|
+              file.write Net::HTTP.get(uri)
+            end
+          rescue
+          end
+        end
+      end
+
+      def image_urls
+        ["300x400", "420x560", "1080x1440"].map {|size| product.image_urls[size][0]["url"] }
+      end
     end
-
-    def parsed_url
-      @parsed_url ||= URI.parse(url)
-    end
-
-    def response_body
-      @reponse_body ||= open(url)
-    end
-
-    def document
-      @document ||= Nokogiri::HTML(response_body)
-    end
-  end
-
-  class ProductImport < Struct.new(:fragment)
-
-    # def inspect
-    #   "ProductImport: #{attributes.map {|a| "#{a[0]}: #{a[1]}"}}"
-    # end
-
-    def attributes
-      {
-        image_url: image_url,
-        designer_name: designer_name,
-        name: name,
-        price_cents: (price_string.to_f * 100).to_i,
-        url: url,
-        sku: sku.to_i
-      }
-    end
-
-    def image_url
-      self[:fragment].css(".photo").first.attributes['src'].value
-    end
-
-    def designer_name
-      self[:fragment].css("header .brand-name").first.content
-    end
-
-    def name
-      self[:fragment].css("header .product-name").first.content
-    end
-
-    def price_string
-      price_from_string(self[:fragment].css("header .price .sale-price").first.content)
-    end
-
-    def url
-      self[:fragment].css(".look-photo").first.attributes["href"].value
-    end
-
-    def sku
-      self[:fragment].css("form.sku-selection").first.attributes["data-gilt-product-id"].content
-    end
-
-    private
-
-    def price_from_string(str)
-      str.match(/[\d\.]+/)[0]
-    end
-
   end
 end

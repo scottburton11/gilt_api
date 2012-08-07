@@ -1,5 +1,7 @@
 require 'gilt'
 require 'sinatra'
+require 'rabl'
+require 'builder'
 
 
 class Gilt::Products < Sinatra::Base

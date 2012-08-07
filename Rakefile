@@ -27,8 +27,7 @@ end
 
 namespace :products do
   task :import => :environment do
-    require 'lib/scrape'
-    Scraper.perform
+    Gilt::Importer.import
   end
 
   task :download_images => :environment do

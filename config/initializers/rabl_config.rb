@@ -1,3 +1,5 @@
+Rabl.register!
+
 Rabl.configure do |config|
   # Commented as these are the defaults
   # config.json_engine = nil # Any multi\_json engines
