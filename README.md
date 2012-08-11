@@ -4,15 +4,13 @@ This is an example JSON API that mimics what might power an app like gilt.com. S
 
 Getting Started
 ---------------
+Get a [Gilt API key](https://dev.gilt.com/user/register)
+
 Get your environment on, and create and seed your database
 
     bundle && rake
     
-If you'd like, download product image files to lib/public/images
-
-    rake products:download_images
-
-Remember to move these image files to a location that is publicly
+Remember to move the image files to a location that is publicly
 accessible to your webserver; this location is only accessible on the
 API's address/port.
 
