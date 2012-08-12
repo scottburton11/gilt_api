@@ -9,6 +9,9 @@ Get a [Gilt API key](https://dev.gilt.com/user/register)
 Get your environment on, and create and seed your database
 
     bundle && rake
+
+`rake` could take some time; it downloads attributes and images for
+every product currently on the site. 
     
 Remember to move the image files to a location that is publicly
 accessible to your webserver; this location is only accessible on the
